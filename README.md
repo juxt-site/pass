@@ -1,6 +1,7 @@
 # Site OAuth Client
 
-This is intended to allow public OAuth2 clients (such as browsers and mobile applications) to acquire access tokens via a Service Worker.
+This library is intended to allow public OAuth2 clients (such as browsers and mobile applications) to acquire access tokens via a Service Worker.
+See https://www.ietf.org/archive/id/draft-ietf-oauth-browser-based-apps-12.html#name-acquiring-tokens-from-a-ser for further discussion.
 
 ## Usage
 
