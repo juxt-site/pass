@@ -9,7 +9,7 @@ From your HTML file you can use the utility functions as follows:
   <script type="module">
     import { useOAuth2 } from "./oauth2.js";
 
-    const { sendAuthCodeRequest, sendAuthTokenRequest, isError } = useOAuth2({
+    const { sendAuthTokenRequest, isError } = useOAuth2({
       client_id: "example-client-id",
       token_endpoint: "https://service-worker/oauth/token",
       authorization_endpoint: "https://service-worker/oauth/authorize",
@@ -47,7 +47,7 @@ From your HTML file you can use the utility functions as follows:
 }
 ```
 
-After a successful login, the user will be redirected to the `redirect_uri`. At this stage, if there are no errors the `sendAuthTokenRequest` function will be called. This function will send a request to the `token_endpoint` with the following parameters:
+After a successful login, the user will be redirected to the `redirect_uri`. At this stage, if there are no errors the `sendAuthTokenRequest` function will be called (by the user). This function will send a request to the `token_endpoint` with the following parameters:
 
 ```js
 {
