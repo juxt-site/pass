@@ -1,4 +1,8 @@
-# Usage
+# Site OAuth Client
+
+This is intended to allow public OAuth2 clients (such as browsers and mobile applications) to acquire access tokens via a Service Worker.
+
+## Usage
 
 Put the `oauth2.js` and `service-worker.js` in your public folder.
 
@@ -63,4 +67,5 @@ Additionally, when calling the `token_endpoint` the service worker will intercep
 
 ## References
 
-[RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068#name-jwt-access-token-header-and)
+* [RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068#name-jwt-access-token-header-and)
+* [OAuth 2.0 for Browser-Based Apps](https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/)
