@@ -60,3 +60,7 @@ If the request is successful, the `onSuccess` callback will be called.
 The service worker will intercept all requests to the `protected_hostname` and `protected_pathname` and will add the `Authorization` header to the request.
 
 Additionally, when calling the `token_endpoint` the service worker will intercept the request, will grab the `access_token`, `token_type`, and `expires_in` values and will store them in memory. The service worker will also remove those values from the response body, so they become practically inaccessible to the client.
+
+## References
+
+[RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068#name-jwt-access-token-header-and)
