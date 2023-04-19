@@ -1,72 +1,71 @@
-# Site OAuth Client
+## Rationale
 
-This library is intended to allow public OAuth2 clients (such as browsers and mobile applications) to acquire access tokens via a Service Worker.
-See https://www.ietf.org/archive/id/draft-ietf-oauth-browser-based-apps-12.html#name-acquiring-tokens-from-a-ser for further discussion.
+Giving any web application access to sensitive data like an access token is a security risk and should be avoided as much as possible. This library takes advantage of the [Service Workers API](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API) to store the access token in a secure environment and to attach it to the requests made to the protected resources.
+
+## Installation
+
+```sh
+npm install @luciodale/oauth2
+yarn add @luciodale/oauth2
+```
+
+After installing, you need to run the `init` script to generate the worker and redirect files.
+
+```sh
+npx @luciodale/oauth2 init
+```
+
+This script will place in your project `public` folder the following files:
+
+- `oauth-redirect.html`
+- `oauth-service-worker.js`
+
+if your `public` folder is not in the root of your project or if it has a different name, you can specify the path to the folder as a parameter to the `init` script.
+
+```sh
+npx @luciodale/oauth2 init ./path-to-public-folder
+```
 
 ## Usage
 
-Put the `oauth2.js` and `service-worker.js` in your public folder.
+The library exposes two functions:
 
-From your HTML file you can use the utility functions as follows:
+- `registerOAuth2Worker` registers a worker that attaches the bearer tokens to the user's provided protected resources. This function should be called once, so if used in an SPA, it should be called in the main entry point of the application.
 
-```html
-<body>
-  <script type="module">
-    import { useOAuth2 } from "./oauth2.js";
+- `authorize` starts the oauth2 flow and, if successful, grants an access token to the client.
+  it takes a single object as a parameter that must have the following shape:
 
-    const { sendAuthTokenRequest, isError } = useOAuth2({
-      client_id: "example-client-id",
-      token_endpoint: "https://service-worker/oauth/token",
-      authorization_endpoint: "https://service-worker/oauth/authorize",
-      redirect_uri: "https://service-worker/index.html",
-      requested_scopes: "",
-      protected_hostname: "service-worker",
-      protected_pathname: "/api/*",
-    });
-
-    if (isError) {
-      alert("ERROR");
-    } else {
-      sendAuthTokenRequest(
-        (data) => console.log("authenticated"),
-        (error) => console.log("not authenticated")
-      );
-    }
-  </script>
-</body>
+```ts
+export type Config = {
+  origin: string;
+  client_id: string;
+  redirect_uri: string;
+  authorization_endpoint: string;
+  token_endpoint: string;
+  requested_scopes: string[];
+};
 ```
 
-## Flow
-
-`useOAuth2` immediately invokes the `sendAuthCodeRequest` function, so the user will be redirected to the `authorization_endpoint` where they will be prompted to login (or not if they have a valid session cookie). The request accepts the following parameters:
+The following snippet provides a concrete example of how to use this library.
 
 ```js
-{
-  client_id,
-    redirect_uri,
-    response_type,
-    scope,
-    state,
-    code_challenge,
-    code_challenge_method;
+import { registerOAuth2Worker, authorize } from "@luciodale/oauth2";
+
+registerOAuth2Worker();
+
+const resource_server = "https://home.juxt.site";
+const authorization_server = "https://auth.home.juxt.site";
+const app_server = "https://surveyor.apps.com";
+
+// this callback wraps the `authorize` function and will be invoked when the user clicks for example on a login button
+function authorizeCallback() {
+  authorize({
+    origin: resource_server,
+    client_id: "surveyor",
+    authorization_endpoint: `${authorization_server}/oauth/authorize`,
+    token_endpoint: `${authorization_server}/oauth/token`,
+    redirect_uri: `${app_server}/oauth-redirect.html`,
+    requested_scopes: [],
+  });
 }
 ```
-
-After a successful login, the user will be redirected to the `redirect_uri`. At this stage, if there are no errors the `sendAuthTokenRequest` function will be called (by the user). This function will send a request to the `token_endpoint` with the following parameters:
-
-```js
-{
-  grant_type, code, client_id, code_verifier;
-}
-```
-
-If the request is successful, the `onSuccess` callback will be called.
-
-The service worker will intercept all requests to the `protected_hostname` and `protected_pathname` and will add the `Authorization` header to the request.
-
-Additionally, when calling the `token_endpoint` the service worker will intercept the request, will grab the `access_token`, `token_type`, and `expires_in` values and will store them in memory. The service worker will also remove those values from the response body, so they become practically inaccessible to the client.
-
-## References
-
-* [RFC 9068](https://datatracker.ietf.org/doc/html/rfc9068#name-jwt-access-token-header-and)
-* [OAuth 2.0 for Browser-Based Apps](https://datatracker.ietf.org/doc/draft-ietf-oauth-browser-based-apps/)
