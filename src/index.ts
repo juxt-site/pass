@@ -120,7 +120,7 @@ export async function authorize(config: Config): Promise<void> {
 
 export async function registerOAuth2Worker(): Promise<void> {
   await navigator.serviceWorker
-    .register("./oauth-service-worker.js")
+    .register("/oauth-service-worker.js")
     .then(() => {
       console.log("Service worker registered");
       // we need this as a workaround to the fact that the service worker doesn't kick in with a hard refresh

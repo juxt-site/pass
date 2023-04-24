@@ -106,7 +106,7 @@ async function authorize(config) {
   window.open(url);
 }
 async function registerOAuth2Worker() {
-  await navigator.serviceWorker.register("./oauth-service-worker.js").then(() => {
+  await navigator.serviceWorker.register("/oauth-service-worker.js").then(() => {
     console.log("Service worker registered");
     // we need this as a workaround to the fact that the service worker doesn't kick in with a hard refresh
     !navigator.serviceWorker.controller && location.reload();

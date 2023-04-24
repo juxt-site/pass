@@ -1,7 +1,3 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
 // Generate a secure random string using the browser crypto functions
 function generateRandomString() {
   const array = new Uint32Array(28);
@@ -106,13 +102,11 @@ async function authorize(config) {
   window.open(url);
 }
 async function registerOAuth2Worker() {
-  await navigator.serviceWorker.register("./oauth-service-worker.js").then(() => {
+  await navigator.serviceWorker.register("/oauth-service-worker.js").then(() => {
     console.log("Service worker registered");
     // we need this as a workaround to the fact that the service worker doesn't kick in with a hard refresh
     !navigator.serviceWorker.controller && location.reload();
   }).catch(error => console.log("Service worker registration failed: ", error));
 }
 
-exports.authorize = authorize;
-exports.exchangeCodeForAccessToken = exchangeCodeForAccessToken;
-exports.registerOAuth2Worker = registerOAuth2Worker;
+export { authorize, exchangeCodeForAccessToken, registerOAuth2Worker };

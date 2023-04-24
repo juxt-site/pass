@@ -5,14 +5,14 @@ Giving any web application access to sensitive data like an access token is a se
 ## Installation
 
 ```sh
-npm install @luciodale/oauth2
-yarn add @luciodale/oauth2
+npm install @juxt/pass
+yarn add @juxt/pass
 ```
 
 After installing, you need to run the `init` script to generate the worker and redirect files.
 
 ```sh
-npx @luciodale/oauth2 init
+npx @juxt/pass init
 ```
 
 This script will place in your project `public` folder the following files:
@@ -23,7 +23,7 @@ This script will place in your project `public` folder the following files:
 if your `public` folder is not in the root of your project or if it has a different name, you can specify the path to the folder as a parameter to the `init` script.
 
 ```sh
-npx @luciodale/oauth2 init ./path-to-public-folder
+npx @juxt/pass init ./path-to-public-folder
 ```
 
 ## Usage
@@ -49,7 +49,7 @@ export type Config = {
 The following snippet provides a concrete example of how to use this library.
 
 ```js
-import { registerOAuth2Worker, authorize } from "@luciodale/oauth2";
+import { registerOAuth2Worker, authorize } from "@juxt/pass";
 
 registerOAuth2Worker();
 
