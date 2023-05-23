@@ -4,6 +4,7 @@ export type AuthorizationCodeRequestInfoProps = {
   authorization_endpoint: string;
   client_id: string;
   redirect_uri: string;
+  requested_scopes?: string[];
 };
 
 export type AuthorizationCodeRequestInfoReturn = {
@@ -16,6 +17,7 @@ async function authorizationCodeRequestInfo({
   authorization_endpoint,
   client_id,
   redirect_uri,
+  requested_scopes,
 }: AuthorizationCodeRequestInfoProps): Promise<AuthorizationCodeRequestInfoReturn> {
   const state = generateRandomString();
   const code_verifier = generateRandomString();
@@ -28,6 +30,7 @@ async function authorizationCodeRequestInfo({
     redirect_uri,
     code_challenge,
     code_challenge_method: "S256",
+    ...(requested_scopes && { scope: requested_scopes.join(" ") }),
   });
   return {
     url: `${authorization_endpoint}?${query_params.toString()}`,
