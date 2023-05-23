@@ -2,6 +2,7 @@ export type AuthorizationCodeRequestInfoProps = {
     authorization_endpoint: string;
     client_id: string;
     redirect_uri: string;
+    requested_scopes?: string[];
 };
 export type AuthorizationCodeRequestInfoReturn = {
     url: string;

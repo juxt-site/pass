@@ -34,7 +34,8 @@ async function pkceChallengeFromVerifier(v) {
 async function authorizationCodeRequestInfo({
   authorization_endpoint,
   client_id,
-  redirect_uri
+  redirect_uri,
+  requested_scopes
 }) {
   const state = generateRandomString();
   const code_verifier = generateRandomString();
@@ -45,7 +46,10 @@ async function authorizationCodeRequestInfo({
     state,
     redirect_uri,
     code_challenge,
-    code_challenge_method: "S256"
+    code_challenge_method: "S256",
+    ...(requested_scopes && requested_scopes.length && {
+      scope: requested_scopes.join(" ")
+    })
   });
   return {
     url: `${authorization_endpoint}?${query_params.toString()}`,

@@ -30,7 +30,8 @@ async function authorizationCodeRequestInfo({
     redirect_uri,
     code_challenge,
     code_challenge_method: "S256",
-    ...(requested_scopes && { scope: requested_scopes.join(" ") }),
+    ...(requested_scopes &&
+      requested_scopes.length && { scope: requested_scopes.join(" ") }),
   });
   return {
     url: `${authorization_endpoint}?${query_params.toString()}`,
