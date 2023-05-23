@@ -55,6 +55,10 @@ function createHeaders(headers, accessToken) {
   return newHeaders;
 }
 
+function getTimestampInSeconds() {
+  return Math.floor(Date.now() / 1000);
+}
+
 async function handleTokenResponse(response, configItem) {
   const { access_token, refresh_token, expires_in } = await response.json();
 
@@ -62,7 +66,7 @@ async function handleTokenResponse(response, configItem) {
   refreshTokenStore.set(configItem.origin, refresh_token);
   tokenExpirationStore.set(configItem.origin, {
     expires_in,
-    date: Date.now(),
+    date: getTimestampInSeconds(),
   });
 }
 
@@ -80,7 +84,7 @@ async function attachBearerToken(request, _clientId) {
   if (tokenStore.get(configItem.origin)) {
     const { expires_in, date } = tokenExpirationStore.get(configItem.origin);
 
-    if (Date.now() - date > expires_in) {
+    if (getTimestampInSeconds() - date > expires_in) {
       try {
         const response = await refreshToken(configItem);
         await handleTokenResponse(response, configItem);
