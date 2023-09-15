@@ -1,3 +1,7 @@
 /node_modules
 yarn-error.log
 .DS_Store
+/dist/index.d.ts
+/dist/index.js
+/dist/utils.d.ts
+/dist/utils.js
