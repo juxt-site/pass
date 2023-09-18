@@ -92,6 +92,17 @@ function exchangeCodeForAccessToken({
   });
   window.close();
 }
+function waitForAccessToken() {
+  return new Promise(resolve => {
+    const accessTokenListener = event => {
+      if (event.data.type === "accessTokenStored") {
+        resolve("accessTokenStored");
+        navigator.serviceWorker.removeEventListener("message", accessTokenListener);
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", accessTokenListener);
+  });
+}
 async function authorize(config) {
   // store config in service worker
   postMessageToWorker({
@@ -108,7 +119,9 @@ async function authorize(config) {
   localStorage.setItem("oauth2_client_id", config.client_id);
   localStorage.setItem("oauth2_token_endpoint", config.token_endpoint);
   localStorage.setItem("oauth2_redirect_uri", config.redirect_uri);
+  const accessTokenReceived = waitForAccessToken();
   window.open(url);
+  return await accessTokenReceived;
 }
 async function registerOAuth2Worker() {
   await navigator.serviceWorker.register("/oauth-service-worker.js").then(() => {

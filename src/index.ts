@@ -103,7 +103,22 @@ export type Config = {
   requested_scopes: string[];
 };
 
-export async function authorize(config: Config): Promise<void> {
+function waitForAccessToken(): Promise<string> {
+  return new Promise((resolve) => {
+    const accessTokenListener = (event: MessageEvent) => {
+      if (event.data.type === "accessTokenStored") {
+        resolve("accessTokenStored");
+        navigator.serviceWorker.removeEventListener(
+          "message",
+          accessTokenListener
+        );
+      }
+    };
+
+    navigator.serviceWorker.addEventListener("message", accessTokenListener);
+  });
+}
+export async function authorize(config: Config): Promise<string> {
   // store config in service worker
   postMessageToWorker({
     type: "storeConfig",
@@ -119,7 +134,10 @@ export async function authorize(config: Config): Promise<void> {
   localStorage.setItem("oauth2_token_endpoint", config.token_endpoint);
   localStorage.setItem("oauth2_redirect_uri", config.redirect_uri);
 
+  const accessTokenReceived = waitForAccessToken();
   window.open(url);
+
+  return await accessTokenReceived;
 }
 
 export async function registerOAuth2Worker(): Promise<void> {

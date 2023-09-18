@@ -20,5 +20,5 @@ export type Config = {
     token_endpoint: string;
     requested_scopes: string[];
 };
-export declare function authorize(config: Config): Promise<void>;
+export declare function authorize(config: Config): Promise<string>;
 export declare function registerOAuth2Worker(): Promise<void>;
