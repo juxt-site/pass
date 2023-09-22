@@ -95,7 +95,7 @@ export function exchangeCodeForAccessToken({
 }
 
 export type Config = {
-  origin: string;
+  resource_server: string;
   client_id: string;
   redirect_uri: string;
   authorization_endpoint: string;
@@ -104,15 +104,20 @@ export type Config = {
 };
 
 function waitForAccessToken(): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const accessTokenListener = (event: MessageEvent) => {
       if (event.data.type === "accessTokenStored") {
         resolve("accessTokenStored");
-        navigator.serviceWorker.removeEventListener(
-          "message",
-          accessTokenListener
-        );
       }
+
+      if (event.data.type === "accessTokenError") {
+        reject("accessTokenError");
+      }
+
+      navigator.serviceWorker.removeEventListener(
+        "message",
+        accessTokenListener
+      );
     };
 
     navigator.serviceWorker.addEventListener("message", accessTokenListener);
@@ -138,6 +143,26 @@ export async function authorize(config: Config): Promise<string> {
   window.open(url);
 
   return await accessTokenReceived;
+}
+
+export async function clearToken(resource_server: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const accessTokenListener = (event: MessageEvent) => {
+      if (event.data.type === "accessTokenCleared") {
+        resolve("accessTokenCleared");
+      }
+      if (event.data.type === "clearTokenError") {
+        reject("clearTokenError");
+      }
+
+      navigator.serviceWorker.removeEventListener(
+        "message",
+        accessTokenListener
+      );
+    };
+    navigator.serviceWorker.addEventListener("message", accessTokenListener);
+    postMessageToWorker({ type: "clearToken", resource_server });
+  });
 }
 
 export async function registerOAuth2Worker(): Promise<void> {

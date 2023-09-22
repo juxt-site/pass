@@ -19,7 +19,7 @@ function sendMessage(message) {
   });
 }
 
-// These Maps are indexed by the origin of the protected resource URLs.
+// These Maps are indexed by the resource_server of the protected resource URLs.
 // There will be one entry in each Map for each protected resource URL,
 // which is provided by the user when calling the authenticate({...}) method.
 const tokenExpirationStore = new Map();
@@ -27,12 +27,28 @@ const refreshTokenStore = new Map();
 const tokenStore = new Map();
 const configStore = new Map();
 
+function clearToken(resource_server) {
+  try {
+    tokenExpirationStore.delete(resource_server);
+    refreshTokenStore.delete(resource_server);
+    tokenStore.delete(resource_server);
+    configStore.delete(resource_server);
+
+    sendMessage({ type: "accessTokenCleared" });
+  } catch (e) {
+    sendMessage({ type: "clearTokenError" });
+  }
+}
+
 self.addEventListener("message", (event) => {
   const type = event.data.type;
 
   switch (type) {
     case "storeConfig":
-      configStore.set(event.data.config.origin, event.data.config);
+      configStore.set(event.data.config.resource_server, event.data.config);
+      break;
+    case "clearToken":
+      clearToken(event.data.resource_server);
       break;
     default:
       console.log("type:", type, "not handled");
@@ -40,7 +56,7 @@ self.addEventListener("message", (event) => {
 });
 
 function refreshToken(configItem) {
-  const refreshToken = refreshTokenStore.get(configItem.origin);
+  const refreshToken = refreshTokenStore.get(configItem.resource_server);
 
   const headers = new Headers();
   headers.set("Content-Type", "application/x-www-form-urlencoded");
@@ -69,15 +85,24 @@ function getTimestampInSeconds() {
 }
 
 async function handleTokenResponse(response, configItem) {
-  const { access_token, refresh_token, expires_in } = await response.json();
+  try {
+    const status = response.status;
 
-  tokenStore.set(configItem.origin, access_token);
-  refreshTokenStore.set(configItem.origin, refresh_token);
-  tokenExpirationStore.set(configItem.origin, {
-    expires_in,
-    date: getTimestampInSeconds(),
-  });
-  sendMessage({ type: "accessTokenStored" });
+    if (status >= 400 && status < 600) {
+      throw new Error("Token request failed");
+    }
+    const { access_token, refresh_token, expires_in } = await response.json();
+
+    tokenStore.set(configItem.resource_server, access_token);
+    refreshTokenStore.set(configItem.resource_server, refresh_token);
+    tokenExpirationStore.set(configItem.resource_server, {
+      expires_in,
+      date: getTimestampInSeconds(),
+    });
+    sendMessage({ type: "accessTokenStored" });
+  } catch (e) {
+    sendMessage({ type: "accessTokenError" });
+  }
 }
 
 // This function intercepts all requests, but only handles those directed to the protected resource URLs.
@@ -91,8 +116,10 @@ async function attachBearerToken(request, _clientId) {
     return request;
   }
 
-  if (tokenStore.get(configItem.origin)) {
-    const { expires_in, date } = tokenExpirationStore.get(configItem.origin);
+  if (tokenStore.get(configItem.resource_server)) {
+    const { expires_in, date } = tokenExpirationStore.get(
+      configItem.resource_server
+    );
 
     if (getTimestampInSeconds() - date > expires_in) {
       try {
@@ -108,7 +135,7 @@ async function attachBearerToken(request, _clientId) {
 
     const headers = createHeaders(
       request.headers,
-      tokenStore.get(configItem.origin)
+      tokenStore.get(configItem.resource_server)
     );
 
     return new Request(request, { headers });

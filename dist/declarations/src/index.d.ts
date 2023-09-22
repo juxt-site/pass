@@ -13,7 +13,7 @@ export declare function exchangeCodeForAccessToken({ query_params, }: {
     query_params: URLSearchParams;
 }): undefined;
 export type Config = {
-    origin: string;
+    resource_server: string;
     client_id: string;
     redirect_uri: string;
     authorization_endpoint: string;
@@ -21,4 +21,5 @@ export type Config = {
     requested_scopes: string[];
 };
 export declare function authorize(config: Config): Promise<string>;
+export declare function clearToken(resource_server: string): Promise<string>;
 export declare function registerOAuth2Worker(): Promise<void>;

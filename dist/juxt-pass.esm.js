@@ -93,12 +93,15 @@ function exchangeCodeForAccessToken({
   window.close();
 }
 function waitForAccessToken() {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const accessTokenListener = event => {
       if (event.data.type === "accessTokenStored") {
         resolve("accessTokenStored");
-        navigator.serviceWorker.removeEventListener("message", accessTokenListener);
       }
+      if (event.data.type === "accessTokenError") {
+        reject("accessTokenError");
+      }
+      navigator.serviceWorker.removeEventListener("message", accessTokenListener);
     };
     navigator.serviceWorker.addEventListener("message", accessTokenListener);
   });
@@ -123,6 +126,24 @@ async function authorize(config) {
   window.open(url);
   return await accessTokenReceived;
 }
+async function clearToken(resource_server) {
+  return new Promise((resolve, reject) => {
+    const accessTokenListener = event => {
+      if (event.data.type === "accessTokenCleared") {
+        resolve("accessTokenCleared");
+      }
+      if (event.data.type === "clearTokenError") {
+        reject("clearTokenError");
+      }
+      navigator.serviceWorker.removeEventListener("message", accessTokenListener);
+    };
+    navigator.serviceWorker.addEventListener("message", accessTokenListener);
+    postMessageToWorker({
+      type: "clearToken",
+      resource_server
+    });
+  });
+}
 async function registerOAuth2Worker() {
   await navigator.serviceWorker.register("/oauth-service-worker.js").then(() => {
     console.log("Service worker registered");
@@ -131,4 +152,4 @@ async function registerOAuth2Worker() {
   }).catch(error => console.log("Service worker registration failed: ", error));
 }
 
-export { authorize, exchangeCodeForAccessToken, registerOAuth2Worker };
+export { authorize, clearToken, exchangeCodeForAccessToken, registerOAuth2Worker };

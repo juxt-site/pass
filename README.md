@@ -37,7 +37,7 @@ The library exposes two functions:
 
 ```ts
 export type Config = {
-  origin: string;
+  resource_server: string;
   client_id: string;
   redirect_uri: string;
   authorization_endpoint: string;
@@ -60,7 +60,7 @@ const app_server = "https://surveyor.apps.com";
 // this callback wraps the `authorize` function and will be invoked when the user clicks for example on a login button
 function authorizeCallback() {
   authorize({
-    origin: resource_server,
+    resource_server: resource_server,
     client_id: "surveyor",
     authorization_endpoint: `${authorization_server}/oauth/authorize`,
     token_endpoint: `${authorization_server}/oauth/token`,
@@ -69,3 +69,15 @@ function authorizeCallback() {
   });
 }
 ```
+
+The `authorize` function will await for the oauth2 flow to complete and it will return a promise that resolves to a string message. If the flow is successful, the message will be `accessTokenStored` otherwise the promise is rejected with `accessTokenError`.
+
+If the authorize function must be invoked multiple times because the application interacts with multiple protected resources, it is crucial to ensure that these requests are not sent concurrently. Developers should await the completion of the authorize function before making subsequent calls with new parameters.
+
+To clear the access token from the worker, the `clearToken` function can be used.
+
+```js
+const msg = await clearToken(resource_server);
+```
+
+The resource server (string) must be passed as a parameter to the `clearToken` function. If the token is cleared successfully, the promise will resolve to `accessTokenCleared` otherwise it will be rejected with `clearTokenError`.
